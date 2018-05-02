@@ -2,6 +2,7 @@ package org.fuber.cabservice.fubercabservice.controller;
 
 import org.fuber.cabservice.exception.ExceptionBody;
 import org.fuber.cabservice.exception.InvalidBookingIdException;
+import org.fuber.cabservice.exception.InvalidCabTypeException;
 import org.fuber.cabservice.exception.NoCabFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -25,6 +26,11 @@ public class GlobalExceptionHandlerController {
 		return new ExceptionBody(HttpStatus.OK, e.getMessage());
 	}
 	
+	@ResponseStatus(value=HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(value = InvalidCabTypeException.class)
+	public ExceptionBody handleException(InvalidCabTypeException e){
+		return new ExceptionBody(HttpStatus.OK, e.getMessage());
+	}
 	
 	
 }

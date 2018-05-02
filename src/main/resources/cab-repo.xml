@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="standard" class="org.fuber.cabservice.fubercabservice.repository.CabRepositoryImpl">
+	    <constructor-arg name="initialCabCount" value="10"></constructor-arg>
+	    <constructor-arg name="rate" value="1"></constructor-arg>
+	    <constructor-arg name="cabType" value="Standard"></constructor-arg>
+	</bean>
+	<bean id="pink" class="org.fuber.cabservice.fubercabservice.repository.CabRepositoryImpl">
+	    <constructor-arg name="initialCabCount" value="10"></constructor-arg>
+	    <constructor-arg name="rate" value="5"></constructor-arg>
+	    <constructor-arg name="cabType" value="Pink"></constructor-arg>
+	</bean>
+</beans>

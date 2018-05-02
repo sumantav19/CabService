@@ -8,10 +8,12 @@ import static org.mockito.Mockito.when;
 import java.util.Map;
 
 import org.fuber.cabservice.exception.InvalidBookingIdException;
+import org.fuber.cabservice.exception.InvalidCabTypeException;
 import org.fuber.cabservice.exception.NoCabFoundException;
 import org.fuber.cabservice.fubercabservice.FuberCabserviceApplication;
 import org.fuber.cabservice.fubercabservice.entity.Cab;
 import org.fuber.cabservice.fubercabservice.repository.CabRepository;
+import org.fuber.cabservice.fubercabservice.repository.CabRepositoryImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -24,41 +26,45 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class CabServiceTest {
 	
 	@InjectMocks
-	CabService cabService;
+	CabServiceImpl cabService;
 	
 	
 	@Mock
-	CabRepository cabRepository;
+	Map<String,CabRepository> cabRepositoryList;	
 	
 	
-	
-	@Test
-	public void testCabRespositoryList(){
-		assertNotNull(cabRepository);
+	@Test(expected=InvalidCabTypeException.class)
+	public void testGetCab(){
+		when(cabRepositoryList.get("pink")).thenReturn(null);
+		cabService.getCab("pink", 2, 3);
 	}
-	
-
 	
 	@Test(expected=NoCabFoundException.class)
-	public void testGetNoCab(){
-		when(cabRepository.getCab(1, 1)).thenReturn(null);
-		cabService.getCab( 2, 3);
+	public void testGetCabPinkNoCab(){
+		when(cabRepositoryList.get("pink")).thenReturn(new CabRepositoryImpl(0,0,"pink"));
+		cabService.getCab("pink", 2, 3);
 	}
 	
-	
-	public void testGetCab(){		
-		when(cabRepository.getCab(1, 1)).thenReturn(new Cab(1, "Standard", 2, 3));
-		Cab cab = cabService.getCab( 2, 3);
-		assertEquals(1, cab.getRate());
-		assertEquals("Standard", cab.getCabType());
+	@Test(expected=NoCabFoundException.class)
+	public void testGetCabNoCabFoundOnCabLeft(){
+		when(cabRepositoryList.get("pink")).thenReturn(new CabRepositoryImpl(0,0,"pink"));
+		cabService.getCab("pink", 2, 4);
+		cabService.getCab("pink", 1, 4);
 	}
 	
-	@Test(expected =  InvalidBookingIdException.class)
-	public void testGetCabAfterReleaseInvalidBookingId(){		
-		cabService.releaseCab( 10, 2, 2);		
+	@Test(expected=InvalidCabTypeException.class)
+	public void testReleaseCabWithInvalidCabType(){
+		when(cabRepositoryList.get("pink")).thenReturn(null);
+		cabService.releaseCab("pink", 10, 2, 3);
 	}
 	
-	
+	@Test
+	public void testGetCabAfterRelease(){
+		when(cabRepositoryList.get("pink")).thenReturn(new CabRepositoryImpl(1,0,"pink"));
+		Cab cab = cabService.getCab("pink", 2, 4);
+		cabService.releaseCab("pink", cab.getBookingId(), 2, 2);
+		assertNotNull(cabService.getCab("pink", 1, 4));
+	}
 
 
 }

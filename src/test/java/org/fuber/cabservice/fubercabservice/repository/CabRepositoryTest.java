@@ -11,6 +11,7 @@ import org.fuber.cabservice.fubercabservice.entity.Cab;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -19,6 +20,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class CabRepositoryTest {
 	
 	@Autowired	
+	@Qualifier("pink")
 	CabRepository cabRepository;
 
 	@Test
@@ -32,14 +34,14 @@ public class CabRepositoryTest {
 	public void getCabStandard(){
 		//assertNotNull(cabRepository);
 		Cab cab = cabRepository.getCab(2,2);	
-		assertEquals("Standard", cab.getCabType());
+		assertEquals("Pink", cab.getCabType());
 		assertEquals(1, cab.getRate());		
 	}	
 	
 	
 	@Test
 	public void getCabNull(){
-		CabRepository cabRepository =  new CabRepository(0);		
+		CabRepository cabRepository =  new CabRepositoryImpl(0,0,"Standard");		
 		assertNull(cabRepository.getCab(2, 2));
 	}
 	
