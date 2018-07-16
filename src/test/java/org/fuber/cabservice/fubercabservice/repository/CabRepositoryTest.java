@@ -35,7 +35,7 @@ public class CabRepositoryTest {
 		//assertNotNull(cabRepository);
 		Cab cab = cabRepository.getCab(2,2);	
 		assertEquals("Pink", cab.getCabType());
-		assertEquals(1, cab.getRate());		
+		assertEquals(5, cab.getRate());		
 	}	
 	
 	
