@@ -16,6 +16,9 @@ public class CabRepositoryImpl  implements CabRepository{
 	List<Cab> freeCab;	
 	Map<Integer,Cab> occupiedCabMap;
 	
+	Object lock1 = new Object();
+	Object lock2 = new Object();
+	
 	public CabRepositoryImpl() {
 		freeCab =  new ArrayList<Cab>();
 		occupiedCabMap =  new HashMap<Integer, Cab>(); 
@@ -40,36 +43,47 @@ public class CabRepositoryImpl  implements CabRepository{
 		}
 		return cab;
 	}
-	public synchronized Cab getCab(int lat, int lng){
-		if(freeCab.isEmpty()){
-			return null;
-		}
-		Iterator<Cab> it  =  freeCab.iterator();
-		double minDistance = Integer.MAX_VALUE;
-		int minDistanceCabIndex=-1;
-		for (int i = 0;it.hasNext();i++){
-			Cab currentCab  = it.next();
-			double currentDistance =  CabUtil.getDistance(currentCab.getCurrentLat(), currentCab.getCurrentLng(), lat, lng);
-			if(minDistance > currentDistance){
-				minDistance =  currentDistance;
-				minDistanceCabIndex = i;
+	public Cab getCab(int lat, int lng){
+		Cab cab;
+		synchronized (lock1) {
+			if (freeCab.isEmpty()) {
+				return null;
 			}
+			Iterator<Cab> it = freeCab.iterator();
+			double minDistance = Integer.MAX_VALUE;
+			int minDistanceCabIndex = -1;
+			for (int i = 0; it.hasNext(); i++) {
+				Cab currentCab = it.next();
+				double currentDistance = CabUtil.getDistance(currentCab.getCurrentLat(), currentCab.getCurrentLng(),
+						lat, lng);
+				if (minDistance > currentDistance) {
+					minDistance = currentDistance;
+					minDistanceCabIndex = i;
+				}
+			}
+			cab = freeCab.remove(minDistanceCabIndex);
 		}
-		Cab cab = freeCab.remove(minDistanceCabIndex);
 		int bookingId =  CabUtil.getBookingId();
-		occupiedCabMap.put(bookingId, cab);
+		synchronized (lock2) {
+			occupiedCabMap.put(bookingId, cab);
+		}
 		cab.setBookingId(bookingId);
 		return cab;
 	}
 	
 	public synchronized void releaseCab(int bookingId,int lat, int lng){
-		Cab cab = occupiedCabMap.remove(bookingId);		
+		Cab cab;
+		synchronized (lock2) {
+			cab = occupiedCabMap.remove(bookingId);
+		}		
 		if(cab == null){
 			throw new InvalidBookingIdException("Invalid booking id");
 		}		
 		cab.setCurrentLat(lat);
 		cab.setCurrentLng(lng);
 		cab.setBookingId(-1);
-		freeCab.add(cab);
+		synchronized (lock1) {
+			freeCab.add(cab);
+		}
 	}
 }
