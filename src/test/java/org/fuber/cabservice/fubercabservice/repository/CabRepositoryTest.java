@@ -5,6 +5,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.assertj.core.api.Assertions;
 import org.fuber.cabservice.exception.InvalidBookingIdException;
 import org.fuber.cabservice.fubercabservice.FuberCabserviceApplication;
@@ -64,13 +68,31 @@ public class CabRepositoryTest {
 	@Test
 	public void getMultipleCabBooking() {
 		CabRepository cabRepository = new CabRepositoryImpl(100, 5, "Test");
-
+		final ExecutorService executor = Executors.newFixedThreadPool(10);
 		Assertions.assertThatCode(() -> {
-			for (int i = 0; i < 100; i++) {
-				Cab cab = cabRepository.getCab(2, 2);
-//				System.out.println(cab.getBookingId());
-				cabRepository.releaseCab(cab.getBookingId(), i, i);
+			for (int i = 0; i < 10; i++) {
+				executor.submit(new Runnable() {
+					
+					@Override
+					public void run() {
+						for (int j = 0; j < 5; j++) {
+							// TODO Auto-generated method stub
+							try {
+								Cab cab = cabRepository.getCab(2, 2);
+								//						System.out.println(cab.getBookingId());
+								cabRepository.releaseCab(cab.getBookingId(),j, 10);
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+						
+					}
+				});
 			}
+			executor.shutdown();
+			
+			executor.awaitTermination(1, TimeUnit.DAYS);
 		}).doesNotThrowAnyException();
 
 	}

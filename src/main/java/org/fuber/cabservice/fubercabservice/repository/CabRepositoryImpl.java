@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.fuber.cabservice.exception.InvalidBookingIdException;
 import org.fuber.cabservice.fubercabservice.entity.Cab;
@@ -21,7 +22,7 @@ public class CabRepositoryImpl  implements CabRepository{
 	
 	public CabRepositoryImpl() {
 		freeCab =  new ArrayList<Cab>();
-		occupiedCabMap =  new HashMap<Integer, Cab>(); 
+		occupiedCabMap =  new ConcurrentHashMap<Integer,Cab>(); 
 		for(int i = 0; i< 10; i++){
 			freeCab.add(new Cab(1,"Standard",i,i));
 		}
@@ -64,18 +65,14 @@ public class CabRepositoryImpl  implements CabRepository{
 			cab = freeCab.remove(minDistanceCabIndex);
 		}
 		int bookingId =  CabUtil.getBookingId();
-		synchronized (lock2) {
-			occupiedCabMap.put(bookingId, cab);
-		}
+		occupiedCabMap.put(bookingId, cab);
 		cab.setBookingId(bookingId);
 		return cab;
 	}
 	
-	public synchronized void releaseCab(int bookingId,int lat, int lng){
+	public void releaseCab(int bookingId,int lat, int lng){
 		Cab cab;
-		synchronized (lock2) {
-			cab = occupiedCabMap.remove(bookingId);
-		}		
+		cab = occupiedCabMap.remove(bookingId);		
 		if(cab == null){
 			throw new InvalidBookingIdException("Invalid booking id");
 		}		
